@@ -1,7 +1,6 @@
 const
     request = require('request'),
     cheerio = require('cheerio'),
-	fs = require('fs'),
 	csv=require('csvtojson')
 	inputFile='list.csv'
 ;

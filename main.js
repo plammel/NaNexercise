@@ -1,3 +1,4 @@
+//module app
 var app = {
 	
 	run: function () {
@@ -7,7 +8,7 @@ var app = {
 			csv=require('csvtojson')
 			csvFilePath='list.csv'
 		;
-		console.log('run');
+
 		function Web(name, url, sources) {
 			this.name = name; 
 			this.url = url;
@@ -30,7 +31,8 @@ var app = {
 			})
 		}
 
-		var loadScriptSources = function(websPrint, webs, end, callback) {
+		var loadScriptSources = function(websPrint, webs, callback) {
+			//log para hacer seguimiento de sincronicidad
 			console.log('loadScriptSources ' + webs.length)
 			request(webs[0].url, function (error, response, body) {
 				var $ = cheerio.load(body);
@@ -47,7 +49,7 @@ var app = {
 				console.log('loadScriptSources ' + webs.length + ' > sources loaded');
 				
 				if (webs.length > 1) {
-					return callback(websPrint, webs.slice(1, webs.length+1), end, loadScriptSources);
+					return callback(websPrint, webs.slice(1, webs.length+1), loadScriptSources);
 				} else {
 					return printWebs(websPrint);
 				}
@@ -57,7 +59,6 @@ var app = {
 		var printWebs = function (webs) {
 			console.log('\n' + ' -------- PRINT WEBS -------- ' + '\n');
 			console.log(webs);
-			
 		}
 		
 		return 	csv()
@@ -66,7 +67,7 @@ var app = {
 				webs[webs.length] = new Web(jsonObj.name, jsonObj.url); 
 			})
 			.on('done',(error)=>{
-				return loadScriptSources(webs, webs, webs.length, loadScriptSources);
+				return loadScriptSources(webs, webs, loadScriptSources);
 			})
 	}
 }

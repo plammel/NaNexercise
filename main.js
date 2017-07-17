@@ -14,9 +14,9 @@ var app = {
 			this.url = url;
 			this.sources = sources;
 		}
-		
+
 		var webs = [];
-		
+
 		var readScripts = function (url) {
 			request(url, function (error, response, body) {
 				var $ = cheerio.load(body);
@@ -31,29 +31,28 @@ var app = {
 			})
 		}
 
-		var loadScriptSources = function(websPrint, webs, callback) {
-			//log para hacer seguimiento de sincronicidad
-			console.log('loadScriptSources ' + webs.length)
-			request(webs[0].url, function (error, response, body) {
-				var $ = cheerio.load(body);
-				var srcs = [];
-				
-				$('script').each(function () {
-					var src = $(this).attr('src');
-					if(src) {
-						srcs[srcs.length] = src;
+		var loadScriptSources = function(webs, onComplete) {
+			this.loaded= 0;
+			this.that = this;
+			
+			webs.forEach((web, i, array) => {
+				request(web.url, (error, response, body) => {
+					var $ = cheerio.load(body);
+					var srcs = [];
+
+					$('script').each(function () {
+						var src = $(this).attr('src');
+						if(src) {
+							srcs[srcs.length] = src;
+						}
+					});
+					web.sources = srcs;
+					that.loaded++;
+					if(that.loaded == array.length) {
+						onComplete(webs);
 					}
 				});
-
-				webs[0].sources = srcs;
-				console.log('loadScriptSources ' + webs.length + ' > sources loaded');
-				
-				if (webs.length > 1) {
-					return callback(websPrint, webs.slice(1, webs.length+1), loadScriptSources);
-				} else {
-					return printWebs(websPrint);
-				}
-			})
+			});
 		}	
 
 		var printWebs = function (webs) {
@@ -61,13 +60,13 @@ var app = {
 			console.log(webs);
 		}
 		
-		return 	csv()
+		return csv()
 			.fromFile(csvFilePath)
 			.on('json',(jsonObj)=>{
 				webs[webs.length] = new Web(jsonObj.name, jsonObj.url); 
 			})
 			.on('done',(error)=>{
-				return loadScriptSources(webs, webs, loadScriptSources);
+				return loadScriptSources(webs, printWebs);
 			})
 	}
 }
